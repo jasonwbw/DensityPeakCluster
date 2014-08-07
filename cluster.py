@@ -84,10 +84,8 @@ class DensityPeakCluster(object):
 				cluster[idx] = cluster[nneigh_item]
 			else:
 				cluster[idx] = -1
+			if idx % (max_id / 10) == 0:
+				logger.info("PROGRESS: at index #%i" % (idx))
 		self.cluster, self.ccenter = cluster, ccenter
+		logger.info("PROGRESS: ended")
 		return rho, delta, nneigh
-
-if __name__ == '__main__':
-	logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-	dpcluster = DensityPeakCluster()
-	dpcluster.cluster(load_paperdata, './example_distances.dat', 1, 4)
