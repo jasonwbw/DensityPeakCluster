@@ -6,7 +6,10 @@ import math
 import logging
 import numpy as np
 
+logger = logging.getLogger("dpc_cluster")
+
 def load_paperdata(distance_f):
+	logger.info("PROGRESS: load data")
 	distances = {}
 	min_dis, max_dis = max_dis = sys.float_info.max, 0.0
 	max_id = 0
@@ -21,15 +24,20 @@ def load_paperdata(distance_f):
 			distances[(x2, x1)] = float(d)
 	for i in xrange(max_id):
 		distances[(i, i)] = 0.0
+	logger.info("PROGRESS: load end")
 	return distances, max_dis, min_dis, max_id
 
 def autoselect_dc(max_id, max_dis, min_dis, distances):
+	logger.info("PROGRESS: auto select dc")
 	percent = 2.0
-	position = int(max_id * percent / 100)
-	return sorted(distances.values())[position * 2 + max_id]
+	position = int(max_id * (max_id + 1) / 2 * percent / 100)
+	dc = sorted(distances.values())[position * 2 + max_id]
+	logger.info("PROGRESS: dc - " + str(dc))
+	return dc
 
 def local_density(max_id, distances, dc, guass=True, cutoff=False):
 	assert guass and cutoff == False and guass or cutoff == True
+	logger.info("PROGRESS: compute local density")
 	guass_func = lambda dij, dc : math.exp(- (dij / dc) ** 2)
 	cutoff_func = lambda dij, dc: 1 if dij < dc else 0
 	func = guass and guass_func or cutoff_func
@@ -38,17 +46,23 @@ def local_density(max_id, distances, dc, guass=True, cutoff=False):
 		for j in xrange(i + 1, max_id + 1):
 			rho[i] += func(distances[(i, j)], dc)
 			rho[j] += func(distances[(i, j)], dc)
+		if i % (max_id / 10) == 0:
+			logger.info("PROGRESS: at index #%i" % (i))
 	return np.array(rho, np.float32)
 
 def min_distance(max_id, distances, rho):
+	logger.info("PROGRESS: compute min distance to nearest higher density neigh")
 	sort_rho_idx = np.argsort(-rho)
-	delta, nneigh = [0.0, -1.0] + [max(distances.values())] * (len(rho) - 2), [0] * len(rho)
+	delta, nneigh = [0.0] + [max(distances.values())] * (len(rho) - 1), [0] * len(rho)
+	delta[sort_rho_idx[1]] = -1.
 	for i in xrange(1, max_id):
 		for j in xrange(0, i):
 			old_i, old_j = sort_rho_idx[i], sort_rho_idx[j]
 			if distances[(old_i, old_j)] < delta[old_i]:
 				delta[old_i] = distances[(old_i, old_j)]
 				nneigh[old_i] = old_j
+		if i % (max_id / 10) == 0:
+			logger.info("PROGRESS: at index #%i" % (i))
 	return np.array(delta, np.float32), np.array(nneigh, np.float32)
 
 class DensityPeakCluster(object):
@@ -59,6 +73,7 @@ class DensityPeakCluster(object):
 			dc = autoselect_dc(max_id, max_dis, min_dis, distances)
 		rho = local_density(max_id, distances, dc)
 		delta, nneigh = min_distance(max_id, distances, rho)
+		logger.info("PROGRESS: start cluster")
 		cluster, ccenter = {}, {}
 		for idx, (ldensity, mdistance, nneigh_item) in enumerate(zip(rho, delta, nneigh)):
 			if idx == 0: continue
@@ -70,7 +85,9 @@ class DensityPeakCluster(object):
 			else:
 				cluster[idx] = -1
 		self.cluster, self.ccenter = cluster, ccenter
+		return rho, delta, nneigh
 
 if __name__ == '__main__':
+	logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 	dpcluster = DensityPeakCluster()
 	dpcluster.cluster(load_paperdata, './example_distances.dat', 1, 4)
