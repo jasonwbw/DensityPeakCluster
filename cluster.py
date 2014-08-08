@@ -67,11 +67,15 @@ def min_distance(max_id, distances, rho):
 
 class DensityPeakCluster(object):
 
-	def cluster(self, load_func, distance_f, density_threshold, distance_threshold, dc = None):
+	def local_density(self, load_func, distance_f, dc = None):
 		distances, max_dis, min_dis, max_id = load_func(distance_f)
 		if dc == None:
 			dc = autoselect_dc(max_id, max_dis, min_dis, distances)
 		rho = local_density(max_id, distances, dc)
+		return distances, max_dis, min_dis, max_id , rho
+
+	def cluster(self, load_func, distance_f, density_threshold, distance_threshold, dc = None):
+		distances, max_dis, min_dis, max_id , rho = self.local_density(load_func, distance_f, dc = dc)
 		delta, nneigh = min_distance(max_id, distances, rho)
 		logger.info("PROGRESS: start cluster")
 		cluster, ccenter = {}, {}
@@ -87,5 +91,7 @@ class DensityPeakCluster(object):
 			if idx % (max_id / 10) == 0:
 				logger.info("PROGRESS: at index #%i" % (idx))
 		self.cluster, self.ccenter = cluster, ccenter
+		self.distances = distances
+		self.max_id = max_id
 		logger.info("PROGRESS: ended")
 		return rho, delta, nneigh
