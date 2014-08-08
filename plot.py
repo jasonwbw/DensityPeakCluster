@@ -4,30 +4,8 @@
 import logging
 import numpy as np
 from cluster import *
-import matplotlib.pyplot as plt
 from sklearn import manifold
-
-def plot_scatter_diagram(which_fig, x, y, x_label = 'x', y_label = 'y', title = 'title', style_list = None):
-	'''
-	Plot scatter diagram
-
-	Args:
-		which_fig  : which sub plot
-		x          : x array
-		y          : y array
-		x_label    : label of x pixel
-		y_label    : label of y pixel
-		title      : title of the plot
-	'''
-	styles = ['b.', 'g.', 'r.', 'c.', 'm.', 'y.', 'k.', 'w.']
-	plt.figure(which_fig)
-	plt.clf()
-	plt.plot(x, y, styles[0])
-	plt.title(title)
-	plt.xlabel(x_label)
-	plt.ylabel(y_label)
-	plt.ylim(bottom = 0)
-	plt.show()
+from plot_utils import *
 
 def plot_rho_delta(rho, delta):
 	logger.info("PLOT: rho-delta plot")
@@ -43,6 +21,7 @@ def plot_cluster(cluster):
 			dp[j - 1, i - 1] = cluster.distances[(i, j)]
 		cls.append(cluster.cluster[i])
 	cls.append(cluster.cluster[cluster.max_id])
+	cls = np.array(cls, dtype = np.float32)
 	seed = np.random.RandomState(seed=3)
 	mds = manifold.MDS()
 	dp_mds = mds.fit_transform(dp)
