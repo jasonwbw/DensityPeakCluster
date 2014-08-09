@@ -112,37 +112,37 @@ def min_distance(max_id, distances, rho):
 class DensityPeakCluster(object):
 
 	def local_density(self, load_func, distance_f, dc = None):
-    	'''
-    	Just compute local density
-    
-    	Args:
-    		load_func  : load func to load data
-    		distance_f : distance data file
-    		dc         : local density threshold, call autoselect_dc if dc is None
-    	
-    	Returns:
-    	    distances dict, max distance, min distance, max index, local density vector
-    	'''		
+		'''
+		Just compute local density
+
+		Args:
+		    load_func  : load func to load data
+		    distance_f : distance data file
+		    dc         : local density threshold, call autoselect_dc if dc is None
+
+		Returns:
+		    distances dict, max distance, min distance, max index, local density vector
+		'''
 		distances, max_dis, min_dis, max_id = load_func(distance_f)
 		if dc == None:
 			dc = autoselect_dc(max_id, max_dis, min_dis, distances)
 		rho = local_density(max_id, distances, dc)
-		return distances, max_dis, min_dis, max_id , rho
+		return distances, max_dis, min_dis, max_id, rho
 
 	def cluster(self, load_func, distance_f, density_threshold, distance_threshold, dc = None):
-    	'''
-    	Cluster the data
-    
-    	Args:
-    		load_func          : load func to load data
-    		distance_f         : distance data file
-    		dc                 : local density threshold, call autoselect_dc if dc is None
-    		density_threshold  : local density threshold for choosing cluster center
-    		distance_threshold : min distance threshold for choosing cluster center
-    	
-    	Returns:
-    	    local density vector, min_distance vector, nearest neighbor vector
-    	'''	
+		'''
+		Cluster the data
+
+		Args:
+		    load_func          : load func to load data
+		    distance_f         : distance data file
+		    dc                 : local density threshold, call autoselect_dc if dc is None
+		    density_threshold  : local density threshold for choosing cluster center
+		    distance_threshold : min distance threshold for choosing cluster center
+
+		Returns:
+		    local density vector, min_distance vector, nearest neighbor vector
+		'''	
 		distances, max_dis, min_dis, max_id , rho = self.local_density(load_func, distance_f, dc = dc)
 		delta, nneigh = min_distance(max_id, distances, rho)
 		logger.info("PROGRESS: start cluster")
