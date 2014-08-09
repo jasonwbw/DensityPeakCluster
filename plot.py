@@ -8,10 +8,23 @@ from sklearn import manifold
 from plot_utils import *
 
 def plot_rho_delta(rho, delta):
+	'''
+	Plot scatter diagram for rho-delta points
+
+	Args:
+		rho   : rho list
+		delta : delta list
+	'''
 	logger.info("PLOT: rho-delta plot")
 	plot_scatter_diagram(0, rho[1:], delta[1:], x_label='rho', y_label='delta', title='rho-delta')
 
 def plot_cluster(cluster):
+	'''
+	Plot scatter diagram for final points that using multi-dimensional scaling for data
+
+	Args:
+		cluster : DensityPeakCluster object
+	'''
 	logger.info("PLOT: cluster result, start multi-dimensional scaling")
 	dp = np.zeros((cluster.max_id, cluster.max_id), dtype = np.float32)
 	cls = []

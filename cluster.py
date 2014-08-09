@@ -9,6 +9,15 @@ import numpy as np
 logger = logging.getLogger("dpc_cluster")
 
 def load_paperdata(distance_f):
+	'''
+	Load distance from data
+
+	Args:
+		distance_f : distance file, the format is column1-index 1, column2-index 2, column3-distance
+	
+	Returns:
+	    distances dict, max distance, min distance, max continues id
+	'''
 	logger.info("PROGRESS: load data")
 	distances = {}
 	min_dis, max_dis = max_dis = sys.float_info.max, 0.0
@@ -28,6 +37,18 @@ def load_paperdata(distance_f):
 	return distances, max_dis, min_dis, max_id
 
 def autoselect_dc(max_id, max_dis, min_dis, distances):
+	'''
+	Auto select the local density threshold
+
+	Args:
+		max_id    : max continues id
+		max_dis   : max distance for all points
+		min_dis   : min distance for all points
+		distances : distance dict
+	
+	Returns:
+	    dc that local density threshold
+	'''
 	logger.info("PROGRESS: auto select dc")
 	percent = 2.0
 	position = int(max_id * (max_id + 1) / 2 * percent / 100)
@@ -36,6 +57,18 @@ def autoselect_dc(max_id, max_dis, min_dis, distances):
 	return dc
 
 def local_density(max_id, distances, dc, guass=True, cutoff=False):
+	'''
+	Compute all points' local density
+
+	Args:
+		max_id    : max continues id
+		distances : distance dict
+		gauss     : use guass func or not(can't use together with cutoff)
+		cutoff    : use cutoff func or not(can't use together with guass)
+	
+	Returns:
+	    local density vector that index is the point index that start from 1
+	'''
 	assert guass and cutoff == False and guass or cutoff == True
 	logger.info("PROGRESS: compute local density")
 	guass_func = lambda dij, dc : math.exp(- (dij / dc) ** 2)
@@ -51,6 +84,17 @@ def local_density(max_id, distances, dc, guass=True, cutoff=False):
 	return np.array(rho, np.float32)
 
 def min_distance(max_id, distances, rho):
+	'''
+	Compute all points' min distance to the higher local density point(which is the nearest neighbor)
+
+	Args:
+		max_id    : max continues id
+		distances : distance dict
+		rho       : local density vector that index is the point index that start from 1
+	
+	Returns:
+	    min_distance vector, nearest neighbor vector
+	'''
 	logger.info("PROGRESS: compute min distance to nearest higher density neigh")
 	sort_rho_idx = np.argsort(-rho)
 	delta, nneigh = [0.0] + [max(distances.values())] * (len(rho) - 1), [0] * len(rho)
@@ -68,6 +112,17 @@ def min_distance(max_id, distances, rho):
 class DensityPeakCluster(object):
 
 	def local_density(self, load_func, distance_f, dc = None):
+    	'''
+    	Just compute local density
+    
+    	Args:
+    		load_func  : load func to load data
+    		distance_f : distance data file
+    		dc         : local density threshold, call autoselect_dc if dc is None
+    	
+    	Returns:
+    	    distances dict, max distance, min distance, max index, local density vector
+    	'''		
 		distances, max_dis, min_dis, max_id = load_func(distance_f)
 		if dc == None:
 			dc = autoselect_dc(max_id, max_dis, min_dis, distances)
@@ -75,10 +130,23 @@ class DensityPeakCluster(object):
 		return distances, max_dis, min_dis, max_id , rho
 
 	def cluster(self, load_func, distance_f, density_threshold, distance_threshold, dc = None):
+    	'''
+    	Cluster the data
+    
+    	Args:
+    		load_func          : load func to load data
+    		distance_f         : distance data file
+    		dc                 : local density threshold, call autoselect_dc if dc is None
+    		density_threshold  : local density threshold for choosing cluster center
+    		distance_threshold : min distance threshold for choosing cluster center
+    	
+    	Returns:
+    	    local density vector, min_distance vector, nearest neighbor vector
+    	'''	
 		distances, max_dis, min_dis, max_id , rho = self.local_density(load_func, distance_f, dc = dc)
 		delta, nneigh = min_distance(max_id, distances, rho)
 		logger.info("PROGRESS: start cluster")
-		cluster, ccenter = {}, {}
+		cluster, ccenter = {}, {}  #cl/icl in cluster_dp.m
 		for idx, (ldensity, mdistance, nneigh_item) in enumerate(zip(rho, delta, nneigh)):
 			if idx == 0: continue
 			if ldensity >= density_threshold and mdistance >= distance_threshold:
