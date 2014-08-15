@@ -44,7 +44,7 @@ def plot_cluster(cluster):
 if __name__ == '__main__':
 	logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 	dpcluster = DensityPeakCluster()
-	rho, delta, nneigh = dpcluster.cluster(load_paperdata, './example_distances.dat', 20, 0.1)
+	rho, delta, nneigh = dpcluster.cluster(load_paperdata, './data/data_in_paper/example_distances.dat', 20, 0.1)
 	logger.info(str(len(dpcluster.ccenter)) + ' center as below')
 	for idx, center in dpcluster.ccenter.items():
 		logger.info('%d %f %f' %(idx, rho[center], delta[center]))
