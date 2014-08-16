@@ -34,7 +34,7 @@ def plot_cluster(cluster):
 			dp[j - 1, i - 1] = cluster.distances[(i, j)]
 		cls.append(cluster.cluster[i])
 	cls.append(cluster.cluster[cluster.max_id])
-	cls = np.array(cls, dtype = np.float32)																																																											
+	cls = np.array(cls, dtype = np.float32)
 	seed = np.random.RandomState(seed=3)
 	mds = manifold.MDS()
 	dp_mds = mds.fit_transform(dp)
@@ -44,9 +44,10 @@ def plot_cluster(cluster):
 if __name__ == '__main__':
 	logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 	dpcluster = DensityPeakCluster()
-	rho, delta, nneigh = dpcluster.cluster(load_paperdata, './example_distances.dat', 20, 0.1)
+	# dpcluster.local_density(load_paperdata, './example_distances.dat')
+	# plot_rho_delta(rho, delta)   #plot to choose the threthold
+	rho, delta, nneigh = dpcluster.cluster(load_paperdata, './example_distances.dat', 20, 0.15)
 	logger.info(str(len(dpcluster.ccenter)) + ' center as below')
 	for idx, center in dpcluster.ccenter.items():
 		logger.info('%d %f %f' %(idx, rho[center], delta[center]))
-	#plot_rho_delta(rho, delta)   #plot to choose the threthold
 	plot_cluster(dpcluster)

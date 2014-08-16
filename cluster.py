@@ -20,7 +20,7 @@ def load_paperdata(distance_f):
 	'''
 	logger.info("PROGRESS: load data")
 	distances = {}
-	min_dis, max_dis = max_dis = sys.float_info.max, 0.0
+	min_dis, max_dis = sys.float_info.max, 0.0
 	max_id = 0
 	with open(distance_f, 'r') as fp:
 		for line in fp:
@@ -83,12 +83,13 @@ def local_density(max_id, distances, dc, guass=True, cutoff=False):
 			logger.info("PROGRESS: at index #%i" % (i))
 	return np.array(rho, np.float32)
 
-def min_distance(max_id, distances, rho):
+def min_distance(max_id, max_dis, distances, rho):
 	'''
 	Compute all points' min distance to the higher local density point(which is the nearest neighbor)
 
 	Args:
 		max_id    : max continues id
+		max_dis   : max distance for all points
 		distances : distance dict
 		rho       : local density vector that index is the point index that start from 1
 	
@@ -97,8 +98,8 @@ def min_distance(max_id, distances, rho):
 	'''
 	logger.info("PROGRESS: compute min distance to nearest higher density neigh")
 	sort_rho_idx = np.argsort(-rho)
-	delta, nneigh = [0.0] + [max(distances.values())] * (len(rho) - 1), [0] * len(rho)
-	delta[sort_rho_idx[1]] = -1.
+	delta, nneigh = [0.0] + [float(max_dis)] * (len(rho) - 1), [0] * len(rho)
+	delta[sort_rho_idx[0]] = -1.
 	for i in xrange(1, max_id):
 		for j in xrange(0, i):
 			old_i, old_j = sort_rho_idx[i], sort_rho_idx[j]
@@ -107,6 +108,7 @@ def min_distance(max_id, distances, rho):
 				nneigh[old_i] = old_j
 		if i % (max_id / 10) == 0:
 			logger.info("PROGRESS: at index #%i" % (i))
+	delta[sort_rho_idx[0]] = max(delta)
 	return np.array(delta, np.float32), np.array(nneigh, np.float32)
 
 class DensityPeakCluster(object):
@@ -144,7 +146,7 @@ class DensityPeakCluster(object):
 		    local density vector, min_distance vector, nearest neighbor vector
 		'''	
 		distances, max_dis, min_dis, max_id , rho = self.local_density(load_func, distance_f, dc = dc)
-		delta, nneigh = min_distance(max_id, distances, rho)
+		delta, nneigh = min_distance(max_id, max_dis, distances, rho)
 		logger.info("PROGRESS: start cluster")
 		cluster, ccenter = {}, {}  #cl/icl in cluster_dp.m
 		for idx, (ldensity, mdistance, nneigh_item) in enumerate(zip(rho, delta, nneigh)):
@@ -152,7 +154,9 @@ class DensityPeakCluster(object):
 			if ldensity >= density_threshold and mdistance >= distance_threshold:
 				ccenter[idx] = idx
 				cluster[idx] = idx
-			elif nneigh_item in cluster:
+		for idx, (ldensity, mdistance, nneigh_item) in enumerate(zip(rho, delta, nneigh)):
+			if idx == 0 or idx in ccenter: continue
+			if nneigh_item in cluster:
 				cluster[idx] = cluster[nneigh_item]
 			else:
 				cluster[idx] = -1
