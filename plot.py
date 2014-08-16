@@ -46,7 +46,7 @@ if __name__ == '__main__':
 	dpcluster = DensityPeakCluster()
 	# dpcluster.local_density(load_paperdata, './example_distances.dat')
 	# plot_rho_delta(rho, delta)   #plot to choose the threthold
-	rho, delta, nneigh = dpcluster.cluster(load_paperdata, './example_distances.dat', 20, 0.15)
+	rho, delta, nneigh = dpcluster.cluster(load_paperdata, './data/data_in_paper/example_distances.dat', 20, 0.1)
 	logger.info(str(len(dpcluster.ccenter)) + ' center as below')
 	for idx, center in dpcluster.ccenter.items():
 		logger.info('%d %f %f' %(idx, rho[center], delta[center]))
