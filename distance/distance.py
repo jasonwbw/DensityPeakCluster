@@ -35,7 +35,7 @@ class Distance():
     """
     if not isinstance(vec1, np.ndarray) or not isinstance(vec2, np.ndarray):
       raise TypeError("type of vec1 or vec2 is not numpy.ndarray")
-    if vec1.shape[0] is not 1 or vec2.shape[0] is not 1:
+    if vec1.ndim is not 1 or vec2.ndim is not 1:
       raise WrongVecError("vec1 or vec2 is not one line array")
     if vec1.size != vec2.size:
       raise WrongVecError("vec1 or vec2 is not same size")    
@@ -53,7 +53,6 @@ class PearsonDistance(Distance):
   def distance(self, vec1, vec2):
     """
     Compute distance of two vector by pearson distance
-    more information view father class recsys.similarity.distance.distance.Distance
     """
     super(PearsonDistance, self).distance(vec1, vec2)      #super method
     avg1, avg2 = (self._avg(vec1), self._avg(vec2))
@@ -81,3 +80,23 @@ class PearsonDistance(Distance):
       return 0
     return vec.sum()/size
 #end PearsonDistance
+
+
+class ConsineDistance(Distance):
+  """
+  consine distance
+      
+  a sub class of Distance
+  """  
+
+  def distance(self, vec1, vec2):
+    """
+    Compute distance of two vector by consine distance
+    """
+    super(ConsineDistance, self).distance(vec1, vec2)      #super method
+    num = np.dot(vec1, vec2)
+    denom = linalg.norm(vec1) * linalg.norm(vec2)
+    if num == 0:
+      return 0
+    return num / denom
+#end ConsineDistance
