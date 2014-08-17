@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 #-*- coding: utf-8 -*-
+#
+# data reference : R. A. Fisher (1936). "The use of multiple measurements in taxonomic problems"
 
 from distance_builder import *
 from distance import *
