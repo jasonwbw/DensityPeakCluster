@@ -35,11 +35,13 @@ def plot_scatter_diagram(which_fig, x, y, x_label = 'x', y_label = 'y', title = 
 			except KeyError:
 				xs[style_list[i]] = [x[i]]
 				ys[style_list[i]] = [y[i]]
+		added = 1
 		for idx, cls in enumerate(clses):
 			if cls == -1:
 				style = styles[0]
+				added = 0
 			else:
-				style = styles[idx + 1]
+				style = styles[idx + added]
 			plt.plot(xs[cls], ys[cls], style)
 	plt.title(title)
 	plt.xlabel(x_label)
