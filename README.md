@@ -4,14 +4,14 @@ A cluster framework for 'Clustering by fast search and find of density peaks' in
 
 ## How to Use
   
-Step0:  
-If your data is not the distance between points but the points' vector, write you distance builder in distance like distance_builder_data_iris_flower.py.  
-  
-Step1:  
-Change the data file in step1_choose_center.py, then run it to choose cluster threshold.  
-  
-Step2:  
-Change the data file and threshold in step2_cluster.py, then run it.  
+Step0: If your data is not the distance between points but the points' vector, write you distance builder in distance like distance_builder_data_iris_flower.py.  
+Step1: Change the data file in step1_choose_center.py, then run it to choose cluster threshold.  
+Step2: Change the data file and threshold in step2_cluster.py, then run it.  
+```python
+python distance_builder_data_iris_flower.py
+python step1_choose_center.py
+python step2_cluster.py
+```
 
 ## Dependencies
 - [NumPy](http://www.numpy.org): normal computing
