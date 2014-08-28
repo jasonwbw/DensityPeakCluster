@@ -36,9 +36,32 @@ def load_paperdata(distance_f):
 	logger.info("PROGRESS: load end")
 	return distances, max_dis, min_dis, max_id
 
+def select_dc(max_id, max_dis, min_dis, distances, auto = False):
+	'''
+	Select the local density threshold, default is the method used in paper, auto is `autoselect_dc`
+
+	Args:
+		max_id    : max continues id
+		max_dis   : max distance for all points
+		min_dis   : min distance for all points
+		distances : distance dict
+		auto      : use auto dc select or not
+	
+	Returns:
+	    dc that local density threshold
+	'''
+	logger.info("PROGRESS: select dc")
+	if auto:
+		return autoselect_dc(max_id, max_dis, min_dis, distances)
+	percent = 2.0
+	position = int(max_id * (max_id + 1) / 2 * percent / 100)
+	dc = sorted(distances.values())[position * 2 + max_id]
+	logger.info("PROGRESS: dc - " + str(dc))
+	return dc
+
 def autoselect_dc(max_id, max_dis, min_dis, distances):
 	'''
-	Auto select the local density threshold
+	Auto select the local density threshold that let average neighbor is 1-2 percent of all nodes.
 
 	Args:
 		max_id    : max continues id
@@ -49,11 +72,20 @@ def autoselect_dc(max_id, max_dis, min_dis, distances):
 	Returns:
 	    dc that local density threshold
 	'''
-	logger.info("PROGRESS: auto select dc")
-	percent = 2.0
-	position = int(max_id * (max_id + 1) / 2 * percent / 100)
-	dc = sorted(distances.values())[position * 2 + max_id]
-	logger.info("PROGRESS: dc - " + str(dc))
+	dc = (max_dis + min_dis) / 2
+
+	while True:
+		nneighs = 2 * sum([1 for v in distances.values() if v < dc]) / max_id ** 2
+		if nneighs >= 0.01 and nneighs <= 0.002:
+			break
+		# binary search
+		if nneighs < 0.01:
+			max_dis = dc
+		else:
+			min_dis = dc
+		dc = (max_dis + min_dis) / 2
+		if max_dis - min_dis < 0.0001:
+			break
 	return dc
 
 def local_density(max_id, distances, dc, guass=True, cutoff=False):
@@ -113,39 +145,43 @@ def min_distance(max_id, max_dis, distances, rho):
 
 class DensityPeakCluster(object):
 
-	def local_density(self, load_func, distance_f, dc = None):
+	def local_density(self, load_func, distance_f, dc = None, auto_select_dc = False):
 		'''
 		Just compute local density
 
 		Args:
-		    load_func  : load func to load data
-		    distance_f : distance data file
-		    dc         : local density threshold, call autoselect_dc if dc is None
+		    load_func     : load func to load data
+		    distance_f    : distance data file
+		    dc            : local density threshold, call select_dc if dc is None
+		    autoselect_dc : auto select dc or not
 
 		Returns:
 		    distances dict, max distance, min distance, max index, local density vector
 		'''
+		assert not (dc != None and auto_select_dc)
 		distances, max_dis, min_dis, max_id = load_func(distance_f)
 		if dc == None:
-			dc = autoselect_dc(max_id, max_dis, min_dis, distances)
+			dc = select_dc(max_id, max_dis, min_dis, distances, auto = auto_select_dc)
 		rho = local_density(max_id, distances, dc)
 		return distances, max_dis, min_dis, max_id, rho
 
-	def cluster(self, load_func, distance_f, density_threshold, distance_threshold, dc = None):
+	def cluster(self, load_func, distance_f, density_threshold, distance_threshold, dc = None, auto_select_dc = False):
 		'''
 		Cluster the data
 
 		Args:
 		    load_func          : load func to load data
 		    distance_f         : distance data file
-		    dc                 : local density threshold, call autoselect_dc if dc is None
+		    dc                 : local density threshold, call select_dc if dc is None
 		    density_threshold  : local density threshold for choosing cluster center
 		    distance_threshold : min distance threshold for choosing cluster center
+		    autoselect_dc      : auto select dc or not
 
 		Returns:
 		    local density vector, min_distance vector, nearest neighbor vector
 		'''	
-		distances, max_dis, min_dis, max_id , rho = self.local_density(load_func, distance_f, dc = dc)
+		assert not (dc != None and auto_select_dc)
+		distances, max_dis, min_dis, max_id , rho = self.local_density(load_func, distance_f, dc = dc, auto_select_dc = auto_select_dc)
 		delta, nneigh = min_distance(max_id, max_dis, distances, rho)
 		logger.info("PROGRESS: start cluster")
 		cluster, ccenter = {}, {}  #cl/icl in cluster_dp.m
