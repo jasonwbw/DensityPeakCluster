@@ -14,3 +14,4 @@ def plot(data):
 
 if __name__ == '__main__':
 	plot('./data/data_in_paper/example_distances.dat')
+	#plot('./data/data_iris_flower/iris.forcluster')

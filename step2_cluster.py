@@ -17,3 +17,4 @@ def plot(data, density_threshold, distance_threshold):
 
 if __name__ == '__main__':
 	plot('./data/data_in_paper/example_distances.dat', 20, 0.1)
+	#plot('./data/data_iris_flower/iris.forcluster', 47.5, 0.9)
