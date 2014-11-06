@@ -59,8 +59,8 @@ class PearsonDistance(Distance):
     v1, v2 = ([item - avg1 for item in vec1[0]], [item - avg1 for item in vec2[0]])
     sqrt1, sqrt2 = (sqrt(sum([pow(item, 2) for item in v1])), sqrt(sum([pow(item, 2) for item in v2])))
     if sqrt1*sqrt2 == 0:
-      return 0
-    return reduce(lambda n,m:n+m, [i*j for i,j in zip(v1, v2)]) \
+      return 1
+    return - reduce(lambda n,m:n+m, [i*j for i,j in zip(v1, v2)]) \
            /  (sqrt1*sqrt2)
   
   def _avg(self, vec):
@@ -97,6 +97,6 @@ class ConsineDistance(Distance):
     num = np.dot(vec1, vec2)
     denom = linalg.norm(vec1) * linalg.norm(vec2)
     if num == 0:
-      return 0
-    return num / denom
+      return 1
+    return - num / denom
 #end ConsineDistance
