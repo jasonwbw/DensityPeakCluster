@@ -5,6 +5,7 @@ import logging
 import numpy as np
 from cluster import *
 from sklearn import manifold
+from sklearn import __version__ as sklearn_version
 from plot_utils import *
 
 def plot_rho_delta(rho, delta):
@@ -38,8 +39,10 @@ def plot_cluster(cluster):
 	fo = open(r'./tmp.txt', 'w')
 	fo.write('\n'.join(map(str, cls)))
 	fo.close()
-	seed = np.random.RandomState(seed=3)
-	mds = manifold.MDS(max_iter=200, eps=1e-4, n_init=1)
+	if float(sklearn_version) > 0.14:
+		mds = manifold.MDS(max_iter=200, eps=1e-4, n_init=1, dissimilarity='precomputed')
+	else:
+		mds = manifold.MDS(max_iter=200, eps=1e-4, n_init=1)
 	dp_mds = mds.fit_transform(dp)
 	logger.info("PLOT: end mds, start plot")
 	plot_scatter_diagram(1, dp_mds[:, 0], dp_mds[:, 1], title='cluster', style_list = cls)
