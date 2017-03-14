@@ -76,7 +76,7 @@ def autoselect_dc(max_id, max_dis, min_dis, distances):
 
 	while True:
 		nneighs = sum([1 for v in distances.values() if v < dc]) / max_id ** 2
-		if nneighs >= 0.01 and nneighs <= 0.002:
+		if nneighs >= 0.01 and nneighs <= 0.02:
 			break
 		# binary search
 		if nneighs < 0.01:
