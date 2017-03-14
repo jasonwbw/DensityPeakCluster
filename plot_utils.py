@@ -19,11 +19,11 @@ def plot_scatter_diagram(which_fig, x, y, x_label = 'x', y_label = 'y', title = 
 	'''
 	styles = ['k.', 'g.', 'r.', 'c.', 'm.', 'y.', 'b.']
 	assert len(x) == len(y)
-	if style_list != None:
+	if style_list is not None:
 		assert len(x) == len(style_list) and len(styles) >= len(set(style_list))
 	plt.figure(which_fig)
 	plt.clf()
-	if style_list == None:
+	if style_list is None:
 		plt.plot(x, y, styles[0])
 	else:
 		clses = set(style_list)
