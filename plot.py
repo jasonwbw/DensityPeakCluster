@@ -9,6 +9,16 @@ from sklearn import __version__ as sklearn_version
 from plot_utils import *
 
 
+def versiontuple(v):
+    '''
+    Format the version string to tuple of int type
+    
+    Argss:
+            v : __version__ string
+    '''
+    return tuple(map(int, (v.split("."))))
+
+
 def plot_rho_delta(rho, delta):
     '''
     Plot scatter diagram for rho-delta points
@@ -42,7 +52,8 @@ def plot_cluster(cluster):
     fo = open(r'./tmp.txt', 'w')
     fo.write('\n'.join(map(str, cls)))
     fo.close()
-    if float(sklearn_version) > 0.14:
+    version = versiontuple(sklearn_version)[1] > 14
+    if version[0] > 0 or version[1] > 14:
         mds = manifold.MDS(max_iter=200, eps=1e-4, n_init=1,
                            dissimilarity='precomputed')
     else:
